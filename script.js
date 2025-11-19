@@ -1,6 +1,4 @@
-/****************************************************
- * PRODUCTS DATA
- ****************************************************/
+/* ============ PRODUCT DATA ============ */
 const productsData = [
  {
     id: 1,
@@ -259,9 +257,7 @@ const productsData = [
   },
 ];
 
-/****************************************************
- * GLOBAL CART HANDLING
- ****************************************************/
+/* ============ GLOBAL HANDLING ============ */
 function updateCartCount() {
   const cart = JSON.parse(localStorage.getItem("cart")) || [];
   const count = cart.reduce((t, item) => t + item.quantity, 0);
@@ -279,16 +275,12 @@ function addToCart(productId) {
   alert("Product added to cart!");
 }
 
-/****************************************************
- * VIEW PRODUCT DETAILS
- ****************************************************/
+/* ============ PRODUCT DETAILS ============ */
 function viewProduct(productId) {
   window.location.href = `product-details.html?id=${productId}`;
 }
 
-/****************************************************
- * PRODUCT LIST & FILTERING
- ****************************************************/
+/* ============ PRODUCT LIST ============ */
 function renderProducts(category = "all") {
   const container = document.getElementById("product-list");
   if (!container) return;
@@ -324,9 +316,7 @@ function setupCategoryFilters() {
   });
 }
 
-/****************************************************
- * PRODUCT DETAILS PAGE
- ****************************************************/
+/* ============ PRODUCT DETAILS ============ */
 function loadProductDetails() {
   if (!window.location.pathname.includes("product-details.html")) return;
 
@@ -359,9 +349,7 @@ function loadProductDetails() {
   initProductFeedback(id);
 }
 
-/****************************************************
- * FEEDBACK FORM DYNAMICALLY
- ****************************************************/
+/* ============ FEEDBACK FORM ============ */
 function createFeedbackSection(productId) {
   const container = document.getElementById("feedback-container");
   if (!container) return;
@@ -401,13 +389,11 @@ function createFeedbackSection(productId) {
       return;
     }
 
-    // Save locally
     const feedbacks = JSON.parse(localStorage.getItem("feedbacks")) || {};
     if (!feedbacks[productId]) feedbacks[productId] = [];
     feedbacks[productId].push({ name, comment, rating });
     localStorage.setItem("feedbacks", JSON.stringify(feedbacks));
 
-    // Submit to SheetDB
     try {
       await fetch("https://sheetdb.io/api/v1/qu500aytsrzqf", {
         method: "POST",
@@ -453,10 +439,7 @@ function initProductFeedback(productId) {
   createFeedbackSection(productId);
 }
 
-
-/****************************************************
- * CART PAGE
- ****************************************************/
+/* ============ CART SECTION ============ */
 function renderCart() {
   if (!window.location.pathname.includes("cart.html")) return;
 
@@ -493,7 +476,6 @@ function renderCart() {
     `;
     container.appendChild(div);
 
-    // Quantity change
     div.querySelector(`#qty-${item.id}`).addEventListener("change", e => {
       let value = parseInt(e.target.value);
       if (isNaN(value) || value < 1) value = 1;
@@ -502,7 +484,6 @@ function renderCart() {
       updateCartTotal();
     });
 
-    // Remove item
     div.querySelector(".btn-remove").addEventListener("click", () => {
       cart = cart.filter(c => c.id !== item.id);
       localStorage.setItem("cart", JSON.stringify(cart));
@@ -532,9 +513,7 @@ function renderCart() {
   }
 }
 
-/****************************************************
- * INITIALIZE BASED ON PAGE
- ****************************************************/
+/* ============ INITIALIZE ============ */
 document.addEventListener("DOMContentLoaded", () => {
   updateCartCount();
 
