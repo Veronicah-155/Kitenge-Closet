@@ -1,0 +1,123 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Sign Up</title>
+    <link rel="stylesheet" href="styles.css" />
+    <link
+      rel="stylesheet"
+      href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css"
+    />
+  </head>
+  <body>
+    <header class="header">
+      <div class="container header-content">
+        <a href="index.html" class="logo-badge">
+          <div class="logo-circle">
+            <img src="assets/logo.png" alt="KitengeCloset Logo" />
+          </div>
+          <div class="logo-text">Kitenge<span>Closet</span></div>
+        </a>
+
+        <nav class="nav">
+          <a href="index.html">Home</a>
+          <a href="products.html">Products</a>
+        </nav>
+
+        <div class="search-bar">
+          <input type="text" id="search" placeholder="Search products..." />
+          <button onclick="searchProducts()">Search</button>
+        </div>
+
+        <div class="cart-auth">
+          <div class="cart-icon" onclick="window.location.href='cart.html'">
+            <i class="fa-solid fa-cart-shopping"></i>
+            <span id="cart-count">0</span>
+          </div>
+
+          <div class="auth-icons">
+            <a href="login.html"><i class="fa-solid fa-user-plus"></i></a>
+          </div>
+        </div>
+      </div>
+    </header>
+
+    <main class="auth-page fade-in">
+      <form
+        id="signup-form"
+        class="auth-card"
+        onsubmit="return validateSignup()"
+      >
+        <h2>Create Account</h2>
+
+        <input type="text" id="name" placeholder="Full Name" required />
+        <input type="email" id="email" placeholder="Email" required />
+        <input type="password" id="password" placeholder="Password" required />
+        <input
+          type="password"
+          id="confirm-password"
+          placeholder="Confirm Password"
+          required
+        />
+
+        <button type="submit" class="btn-primary">Sign Up</button>
+
+        <p class="auth-switch">
+          Already have an account? <a href="login.html">Login</a>
+        </p>
+      </form>
+    </main>
+
+    <!-- FOOTER -->
+    <footer>
+      <div class="footer-container">
+        <!-- Socials Column -->
+        <div class="footer-column">
+          <h1>Kitenge Closet</h1>
+          <h3>Connect with us</h3>
+          <div class="social-media">
+            <a href="#"><i class="fab fa-facebook-f"></i></a>
+            <a href="#"><i class="fab fa-linkedin-in"></i></a>
+            <a href="#"><i class="fab fa-youtube"></i></a>
+            <a href="#"><i class="fab fa-instagram"></i></a>
+            <a href="#"><i class="fab fa-twitter"></i></a>
+          </div>
+        </div>
+
+        <!-- Product Column -->
+        <div class="footer-column">
+          <h3>Products</h3>
+          <a href="#">Sell your Products</a>
+          <a href="#">Advertise</a>
+          <a href="#">Pricing</a>
+          <a href="#">Product Business</a>
+        </div>
+
+        <!-- Services Column -->
+        <div class="footer-column">
+          <h3>Services</h3>
+          <a href="#">Return</a>
+          <a href="#">Cash Back</a>
+          <a href="#">Affiliate Marketing</a>
+          <a href="#">Others</a>
+        </div>
+
+        <!-- Get Help Column -->
+        <div class="footer-column">
+          <h3>Get Help</h3>
+          <a href="#">Help Center</a>
+          <a href="#">Privacy Policy</a>
+          <a href="#">Terms</a>
+          <a href="#">Login</a>
+        </div>
+      </div>
+
+      <div class="footer-bottom">
+        <p>© 2025 <strong>Kitenge Closet</strong>. All Rights Reserved.</p>
+      </div>
+    </footer>
+
+    <script src="script.js"></script>
+  </body>
+</html>
