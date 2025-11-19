@@ -1,61 +1,5 @@
-// ===================== Products =====================
-const products = [
-  
-];
-
 /****************************************************
- * GLOBAL CART HANDLING
- ****************************************************/
-function updateCartCount() {
-  const cart = JSON.parse(localStorage.getItem("cart")) || [];
-  const count = cart.reduce((t, item) => t + item.quantity, 0);
-
-  const cartCount = document.getElementById("cart-count");
-  if (cartCount) cartCount.textContent = count;
-}
-
-function addToCart(productId) {
-  const cart = JSON.parse(localStorage.getItem("cart")) || [];
-
-  const existing = cart.find(item => item.id === productId);
-  if (existing) {
-    existing.quantity += 1;
-  } else {
-    cart.push({ id: productId, quantity: 1 });
-  }
-
-  localStorage.setItem("cart", JSON.stringify(cart));
-  updateCartCount();
-  alert("Product added to cart!");
-}
-
-function removeFromCart(productId) {
-  let cart = JSON.parse(localStorage.getItem("cart")) || [];
-  cart = cart.filter(item => item.id !== productId);
-  localStorage.setItem("cart", JSON.stringify(cart));
-  updateCartCount();
-  renderCart();
-}
-
-/****************************************************
- * SEARCH FUNCTIONALITY
- ****************************************************/
-function searchProducts() {
-  const query = document.getElementById("search").value.toLowerCase();
-  const productCards = document.querySelectorAll(".product-card, .category-card");
-
-  productCards.forEach(card => {
-    const text = card.textContent.toLowerCase();
-    if (text.includes(query)) {
-      card.style.display = "";
-    } else {
-      card.style.display = "none";
-    }
-  });
-}
-
-/****************************************************
- * PRODUCT LIST & FILTERING
+ * PRODUCTS DATA
  ****************************************************/
 const productsData = [
  {
@@ -315,12 +259,41 @@ const productsData = [
   },
 ];
 
+/****************************************************
+ * GLOBAL CART HANDLING
+ ****************************************************/
+function updateCartCount() {
+  const cart = JSON.parse(localStorage.getItem("cart")) || [];
+  const count = cart.reduce((t, item) => t + item.quantity, 0);
+  const cartCount = document.getElementById("cart-count");
+  if (cartCount) cartCount.textContent = count;
+}
+
+function addToCart(productId) {
+  const cart = JSON.parse(localStorage.getItem("cart")) || [];
+  const existing = cart.find(item => item.id === productId);
+  if (existing) existing.quantity += 1;
+  else cart.push({ id: productId, quantity: 1 });
+  localStorage.setItem("cart", JSON.stringify(cart));
+  updateCartCount();
+  alert("Product added to cart!");
+}
+
+/****************************************************
+ * VIEW PRODUCT DETAILS
+ ****************************************************/
+function viewProduct(productId) {
+  window.location.href = `product-details.html?id=${productId}`;
+}
+
+/****************************************************
+ * PRODUCT LIST & FILTERING
+ ****************************************************/
 function renderProducts(category = "all") {
   const container = document.getElementById("product-list");
   if (!container) return;
 
   container.innerHTML = "";
-
   let filtered = productsData;
   if (category !== "all") {
     filtered = productsData.filter(p => p.category.toLowerCase() === category.toLowerCase());
@@ -346,8 +319,7 @@ function setupCategoryFilters() {
   const buttons = document.querySelectorAll(".category-btn");
   buttons.forEach(btn => {
     btn.addEventListener("click", () => {
-      const category = btn.dataset.category;
-      renderProducts(category);
+      renderProducts(btn.dataset.category);
     });
   });
 }
@@ -363,14 +335,12 @@ function loadProductDetails() {
 
   const params = new URLSearchParams(window.location.search);
   const id = parseInt(params.get("id"));
-
-  const product = productsData.find((p) => p.id === id);
+  const product = productsData.find(p => p.id === id);
   if (!product) {
     container.innerHTML = "<p>Product not found.</p>";
     return;
   }
 
-  // Create a flex layout: image on left, info + feedback on right
   container.innerHTML = `
     <div class="product-detail-wrapper">
       <div class="product-image">
@@ -386,11 +356,11 @@ function loadProductDetails() {
     </div>
   `;
 
-  initProductFeedback(id); // render feedback inside #feedback-container
+  initProductFeedback(id);
 }
 
 /****************************************************
- * PRODUCT FEEDBACK FORM DYNAMICALLY
+ * FEEDBACK FORM DYNAMICALLY
  ****************************************************/
 function createFeedbackSection(productId) {
   const container = document.getElementById("feedback-container");
@@ -401,23 +371,17 @@ function createFeedbackSection(productId) {
       <h3>Leave a Review</h3>
       <form id="feedback-form">
         <input type="text" id="feedback-name" placeholder="Your Name" required />
-
         <div class="star-rating">
-          ${[1, 2, 3, 4, 5]
-            .map(
-              (n) =>
-                `<label class="star-label">
-                  <input type="radio" name="rating" value="${n}" />
-                  <span>⭐</span>
-                </label>`
-            )
-            .join("")}
+          ${[1,2,3,4,5].map(n => `
+            <label class="star-label">
+              <input type="radio" name="rating" value="${n}" />
+              <span>⭐</span>
+            </label>
+          `).join('')}
         </div>
-
         <textarea id="feedback-comment" placeholder="Write your comment" required></textarea>
         <button type="submit" class="btn-primary">Submit Review</button>
       </form>
-
       <div id="feedback-list" class="feedback-list"></div>
     </div>
   `;
@@ -425,27 +389,46 @@ function createFeedbackSection(productId) {
   loadFeedback(productId);
 
   const form = document.getElementById("feedback-form");
-  form.addEventListener("submit", function (e) {
+  form.addEventListener("submit", async (e) => {
     e.preventDefault();
+
     const name = document.getElementById("feedback-name").value.trim();
     const comment = document.getElementById("feedback-comment").value.trim();
-    const rating = parseInt(
-      document.querySelector('input[name="rating"]:checked')?.value || 0
-    );
+    const rating = parseInt(document.querySelector('input[name="rating"]:checked')?.value || 0);
 
     if (!name || !comment || !rating) {
       alert("Please fill all fields and select a rating.");
       return;
     }
 
+    // Save locally
     const feedbacks = JSON.parse(localStorage.getItem("feedbacks")) || {};
     if (!feedbacks[productId]) feedbacks[productId] = [];
-
     feedbacks[productId].push({ name, comment, rating });
     localStorage.setItem("feedbacks", JSON.stringify(feedbacks));
 
+    // Submit to SheetDB
+    try {
+      await fetch("https://sheetdb.io/api/v1/qu500aytsrzqf", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          data: {
+            productId,
+            name,
+            comment,
+            rating,
+            date: new Date().toISOString()
+          }
+        })
+      });
+    } catch (err) {
+      console.error("Failed to send review to SheetDB:", err);
+    }
+
     form.reset();
     loadFeedback(productId);
+    alert("Thank you for your review!");
   });
 }
 
@@ -456,32 +439,23 @@ function loadFeedback(productId) {
   const feedbacks = JSON.parse(localStorage.getItem("feedbacks")) || {};
   const productFeedbacks = feedbacks[productId] || [];
 
-  feedbackList.innerHTML = "";
-
-  if (!productFeedbacks.length) {
-    feedbackList.innerHTML =
-      "<p>No reviews yet. Be the first to review!</p>";
-    return;
-  }
-
-  productFeedbacks.forEach((fb) => {
-    const div = document.createElement("div");
-    div.className = "feedback-card";
-    div.innerHTML = `
-      <p><strong>${fb.name}</strong> - ${"⭐".repeat(fb.rating)}</p>
-      <p>${fb.comment}</p>
-    `;
-    feedbackList.appendChild(div);
-  });
+  feedbackList.innerHTML = productFeedbacks.length
+    ? productFeedbacks.map(fb => `
+        <div class="feedback-card">
+          <p><strong>${fb.name}</strong> - ${'⭐'.repeat(fb.rating)}</p>
+          <p>${fb.comment}</p>
+        </div>
+      `).join("")
+    : "<p>No reviews yet. Be the first to review!</p>";
 }
 
-// Initialize feedback section
 function initProductFeedback(productId) {
   createFeedbackSection(productId);
 }
 
+
 /****************************************************
- * CART PAGE - INTERACTIVE
+ * CART PAGE
  ****************************************************/
 function renderCart() {
   if (!window.location.pathname.includes("cart.html")) return;
@@ -490,7 +464,6 @@ function renderCart() {
   if (!container) return;
 
   let cart = JSON.parse(localStorage.getItem("cart")) || [];
-
   if (!cart.length) {
     container.innerHTML = "<p>Your cart is empty.</p>";
     return;
@@ -498,14 +471,12 @@ function renderCart() {
 
   container.innerHTML = "";
 
-  // Render each cart item
   cart.forEach(item => {
     const product = productsData.find(p => p.id === item.id);
     if (!product) return;
 
     const div = document.createElement("div");
     div.className = "cart-item";
-
     div.innerHTML = `
       <div class="cart-item-image">
         <img src="${product.image}" alt="${product.name}" />
@@ -513,21 +484,17 @@ function renderCart() {
       <div class="cart-item-details">
         <h3 class="cart-item-name">${product.name}</h3>
         <p class="cart-item-price">Ksh ${product.price}</p>
-
         <div class="quantity-wrapper">
           <label for="qty-${item.id}">Quantity:</label>
           <input type="number" id="qty-${item.id}" min="1" value="${item.quantity}" />
         </div>
-
         <button class="btn-remove">Remove</button>
       </div>
     `;
-
     container.appendChild(div);
 
-    // Handle quantity change
-    const qtyInput = div.querySelector(`#qty-${item.id}`);
-    qtyInput.addEventListener("change", (e) => {
+    // Quantity change
+    div.querySelector(`#qty-${item.id}`).addEventListener("change", e => {
       let value = parseInt(e.target.value);
       if (isNaN(value) || value < 1) value = 1;
       item.quantity = value;
@@ -535,288 +502,52 @@ function renderCart() {
       updateCartTotal();
     });
 
-    // Handle remove button
-    const removeBtn = div.querySelector(".btn-remove");
-    removeBtn.addEventListener("click", () => {
+    // Remove item
+    div.querySelector(".btn-remove").addEventListener("click", () => {
       cart = cart.filter(c => c.id !== item.id);
       localStorage.setItem("cart", JSON.stringify(cart));
-      renderCart(); // re-render the cart
+      renderCart();
     });
   });
 
-  // Render total section
   const totalDiv = document.createElement("div");
   totalDiv.className = "cart-total";
-  totalDiv.innerHTML = `
-    <h3>Total: Ksh <span id="cart-total-price">0</span></h3>
-    <button id="checkout-btn">Proceed to Checkout</button>
-  `;
+  totalDiv.innerHTML = `<h3>Total: Ksh <span id="cart-total-price">0</span></h3>
+                        <button id="checkout-btn">Proceed to Checkout</button>`;
   container.appendChild(totalDiv);
 
-  // Handle checkout button
-  const checkoutBtn = document.getElementById("checkout-btn");
-  checkoutBtn.addEventListener("click", () => {
+  document.getElementById("checkout-btn").addEventListener("click", () => {
     window.location.href = "checkout.html";
   });
 
-  // Initial total calculation
   updateCartTotal();
 
-  // Function to update cart total dynamically
   function updateCartTotal() {
     const totalPrice = cart.reduce((sum, item) => {
       const product = productsData.find(p => p.id === item.id);
-      return sum + (product.price * item.quantity);
+      return sum + product.price * item.quantity;
     }, 0);
-
     const totalPriceEl = document.getElementById("cart-total-price");
     if (totalPriceEl) totalPriceEl.textContent = totalPrice.toLocaleString();
   }
 }
 
-// Initialize cart on page load
-document.addEventListener("DOMContentLoaded", renderCart);
 /****************************************************
- * CART PAGE - INTERACTIVE
- ****************************************************/
-function renderCart() {
-  if (!window.location.pathname.includes("cart.html")) return;
-
-  const container = document.getElementById("cart-items");
-  if (!container) return;
-
-  let cart = JSON.parse(localStorage.getItem("cart")) || [];
-
-  if (!cart.length) {
-    container.innerHTML = "<p>Your cart is empty.</p>";
-    return;
-  }
-
-  container.innerHTML = "";
-
-  // Render each cart item
-  cart.forEach(item => {
-    const product = productsData.find(p => p.id === item.id);
-    if (!product) return;
-
-    const div = document.createElement("div");
-    div.className = "cart-item";
-
-    div.innerHTML = `
-      <div class="cart-item-image">
-        <img src="${product.image}" alt="${product.name}" />
-      </div>
-      <div class="cart-item-details">
-        <h3 class="cart-item-name">${product.name}</h3>
-        <p class="cart-item-price">Ksh ${product.price}</p>
-
-        <div class="quantity-wrapper">
-          <label for="qty-${item.id}">Quantity:</label>
-          <input type="number" id="qty-${item.id}" min="1" value="${item.quantity}" />
-        </div>
-
-        <button class="btn-remove">Remove</button>
-      </div>
-    `;
-
-    container.appendChild(div);
-
-    // Handle quantity change
-    const qtyInput = div.querySelector(`#qty-${item.id}`);
-    qtyInput.addEventListener("change", (e) => {
-      let value = parseInt(e.target.value);
-      if (isNaN(value) || value < 1) value = 1;
-      item.quantity = value;
-      localStorage.setItem("cart", JSON.stringify(cart));
-      updateCartTotal();
-    });
-
-    // Handle remove button
-    const removeBtn = div.querySelector(".btn-remove");
-    removeBtn.addEventListener("click", () => {
-      cart = cart.filter(c => c.id !== item.id);
-      localStorage.setItem("cart", JSON.stringify(cart));
-      renderCart(); // re-render the cart
-    });
-  });
-
-  // Render total section
-  const totalDiv = document.createElement("div");
-  totalDiv.className = "cart-total";
-  totalDiv.innerHTML = `
-    <h3>Total: Ksh <span id="cart-total-price">0</span></h3>
-    <button id="checkout-btn">Proceed to Checkout</button>
-  `;
-  container.appendChild(totalDiv);
-
-  // Handle checkout button
-  const checkoutBtn = document.getElementById("checkout-btn");
-  checkoutBtn.addEventListener("click", () => {
-    window.location.href = "checkout.html";
-  });
-
-  // Initial total calculation
-  updateCartTotal();
-
-  // Function to update cart total dynamically
-  function updateCartTotal() {
-    const totalPrice = cart.reduce((sum, item) => {
-      const product = productsData.find(p => p.id === item.id);
-      return sum + (product.price * item.quantity);
-    }, 0);
-
-    const totalPriceEl = document.getElementById("cart-total-price");
-    if (totalPriceEl) totalPriceEl.textContent = totalPrice.toLocaleString();
-  }
-}
-
-// Initialize cart on page load
-document.addEventListener("DOMContentLoaded", renderCart);
-
-
-/****************************************************
- * CHECKOUT PAGE
- ****************************************************/
-function validatePayment() {
-  const address = document.getElementById("address").value.trim();
-  const card = document.getElementById("card-number").value.trim();
-  const expiry = document.getElementById("expiry").value.trim();
-  const cvv = document.getElementById("cvv").value.trim();
-
-  if (!address || !card || !expiry || !cvv) {
-    alert("Please fill in all fields.");
-    return false;
-  }
-
-  processPayment();
-  return false;
-}
-
-function processPayment() {
-  const cart = JSON.parse(localStorage.getItem("cart")) || [];
-  if (!cart.length) {
-    alert("Your cart is empty.");
-    window.location.href = "products.html";
-    return;
-  }
-
-  const orderId = generateOrderId();
-  localStorage.setItem("last_order_id", orderId);
-
-  // Clear cart
-  localStorage.removeItem("cart");
-
-  window.location.href = "confirmation.html";
-}
-
-function generateOrderId() {
-  const random = Math.floor(Math.random() * 900000) + 100000;
-  return `ORD-${Date.now()}-${random}`;
-}
-
-/****************************************************
- * CONFIRMATION PAGE
- ****************************************************/
-function loadConfirmationData() {
-  if (!window.location.pathname.includes("confirmation.html")) return;
-
-  const orderIdElement = document.getElementById("order-id");
-  const orderId = localStorage.getItem("last_order_id");
-
-  if (!orderId) {
-    window.location.href = "products.html";
-    return;
-  }
-
-  orderIdElement.textContent = orderId;
-  localStorage.removeItem("last_order_id");
-}
-
-/****************************************************
- * LOGIN PAGE
- ****************************************************/
-function validateLogin() {
-  const email = document.getElementById("email").value.trim();
-  const password = document.getElementById("password").value.trim();
-
-  const savedUser = JSON.parse(localStorage.getItem("user_account"));
-
-  if (!savedUser) {
-    alert("No account found. Please sign up first.");
-    return false;
-  }
-
-  if (email !== savedUser.email || password !== savedUser.password) {
-    alert("Incorrect email or password!");
-    return false;
-  }
-
-  localStorage.setItem("logged_in_user", savedUser.email);
-  alert("Login successful!");
-  window.location.href = "products.html";
-  return false;
-}
-
-/****************************************************
- * SIGNUP PAGE
- ****************************************************/
-function validateSignup() {
-  const name = document.getElementById("name").value.trim();
-  const email = document.getElementById("email").value.trim();
-  const password = document.getElementById("password").value.trim();
-  const confirmPassword = document.getElementById("confirm-password").value.trim();
-
-  if (!name || !email || !password || !confirmPassword) {
-    alert("Please fill in all fields.");
-    return false;
-  }
-
-  if (password !== confirmPassword) {
-    alert("Passwords do not match!");
-    return false;
-  }
-
-  const existingUser = JSON.parse(localStorage.getItem("user_account"));
-  if (existingUser && existingUser.email === email) {
-    alert("An account with this email already exists. Please login.");
-    return false;
-  }
-
-  const user = { name, email, password };
-  localStorage.setItem("user_account", JSON.stringify(user));
-
-  alert("Signup successful! Please login.");
-  window.location.href = "login.html";
-  return false;
-}
-
-/****************************************************
- * HOME PAGE BANNER SLIDER
- ****************************************************/
-let slideIndex = 0;
-function showSlides() {
-  const slides = document.querySelectorAll(".banner-slides .slide");
-  if (!slides.length) return;
-
-  slides.forEach(slide => slide.style.display = "none");
-
-  slideIndex++;
-  if (slideIndex > slides.length) slideIndex = 1;
-
-  slides[slideIndex - 1].style.display = "block";
-  setTimeout(showSlides, 3000);
-}
-
-/****************************************************
- * INITIALIZE
+ * INITIALIZE BASED ON PAGE
  ****************************************************/
 document.addEventListener("DOMContentLoaded", () => {
   updateCartCount();
-  renderProducts();
-  setupCategoryFilters();
-  loadProductDetails();
-  renderCart();
-  loadConfirmationData();
-  showSlides();
-  initProductFeedback();
+
+  if (window.location.pathname.includes("index.html") || window.location.pathname.includes("products.html")) {
+    renderProducts();
+    setupCategoryFilters();
+  }
+
+  if (window.location.pathname.includes("product-details.html")) {
+    loadProductDetails();
+  }
+
+  if (window.location.pathname.includes("cart.html")) {
+    renderCart();
+  }
 });

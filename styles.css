@@ -408,7 +408,7 @@ header.header {
   transform: scale(1.05);
 }
 
-/* ---------------- Product Details ---------------- */
+/* ---------------- Product Details Wrapper ---------------- */
 .product-detail-wrapper {
   display: flex;
   gap: 40px;
@@ -416,83 +416,119 @@ header.header {
   max-width: 1000px;
   flex-wrap: wrap;
   transition: all 0.3s ease;
-  background: #1a1818ff
+  background: #1a1818;
+  padding: 25px;
+  border-radius: 16px;
+  box-shadow: 0 8px 25px rgba(0, 0, 0, 0.25);
 }
 
+/* Product Image */
 .product-image img {
   width: 100%;
   max-width: 400px;
-  border-radius: 12px;
+  border-radius: 16px;
   object-fit: cover;
-  box-shadow: 0 6px 20px rgba(7, 7, 7, 0.12);
+  box-shadow: 0 6px 20px rgba(0, 0, 0, 0.2);
   transition: transform 0.3s ease, box-shadow 0.3s ease;
-  padding: 8px 14px;
+  padding: 6px;
 }
 
+.product-image img:hover {
+  transform: scale(1.05);
+  box-shadow: 0 12px 30px rgba(0, 0, 0, 0.3);
+}
+
+/* Product Info */
 .product-info {
   flex: 1;
   display: flex;
   flex-direction: column;
-  justify-content: space-between;
+  justify-content: flex-start;
+  gap: 15px;
 }
 
 .product-info h2 {
   margin-bottom: 15px;
-  font-size: 2rem;
+  font-size: 2.2rem;
   color: #f6b93b;
-  transition: color 0.3s ease;
 }
 
 .product-info p {
   margin-bottom: 15px;
   line-height: 1.6;
-  color: #fff6f6ff;
+  color: #fff6f6;
 }
 
 .product-price {
   font-weight: bold;
-  font-size: 1.6rem;
+  font-size: 1.7rem;
   color: #D91E18;
   margin-bottom: 20px;
+}
+
+/* Add to Cart Button */
+.product-info button {
+  background-color: #f6b93b;
+  color: #141414;
+  padding: 14px 24px;
+  border: none;
+  border-radius: 12px;
+  font-size: 1.1rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background-color 0.3s ease, transform 0.2s ease;
+}
+
+.product-info button:hover {
+  background-color: #d4a017;
+  transform: translateY(-2px);
 }
 
 /* ---------------- Feedback Section ---------------- */
 .feedback-section {
   margin-top: 40px;
-  background: #2b2b2bff;
+  background: #2b2b2b;
   padding: 25px;
-  border-radius: 12px;
-  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.05);
+  border-radius: 16px;
+  box-shadow: 0 6px 20px rgba(0, 0, 0, 0.2);
   transition: all 0.3s ease;
 }
 
 .feedback-section h3 {
   margin-bottom: 20px;
-  font-size: 1.5rem;
-  color: #ffffffff;
+  font-size: 1.6rem;
+  color: #ffffff;
 }
 
 .feedback-section input,
 .feedback-section textarea {
   width: 100%;
-  padding: 12px;
+  padding: 14px;
   margin-bottom: 15px;
-  border-radius: 8px;
+  border-radius: 10px;
   border: 1px solid #ccc;
   font-size: 1rem;
   transition: border-color 0.3s ease, box-shadow 0.3s ease;
+  background: #1f1f1f;
+  color: #fff;
+}
+
+.feedback-section input::placeholder,
+.feedback-section textarea::placeholder {
+  color: #ccc;
 }
 
 .feedback-section input:focus,
 .feedback-section textarea:focus {
   border-color: #D91E18;
-  box-shadow: 0 0 8px rgba(217, 30, 24, 0.2);
+  box-shadow: 0 0 10px rgba(217, 30, 24, 0.3);
   outline: none;
 }
 
+/* Star Rating */
 .feedback-section .star-rating {
   display: flex;
-  gap: 3px;
+  gap: 5px;
   margin-bottom: 15px;
 }
 
@@ -506,46 +542,73 @@ header.header {
 .feedback-section .star-label:hover,
 .feedback-section .star-label input:checked ~ span {
   color: #FFD700; /* gold stars */
-  transform: scale(1.2);
+  transform: scale(1.3);
 }
 
+/* Submit Button */
 .feedback-section button.btn-primary {
   background-color: #D91E18;
   color: #fff;
-  padding: 12px 20px;
+  padding: 14px 22px;
   border: none;
-  border-radius: 8px;
+  border-radius: 10px;
   cursor: pointer;
   font-size: 1rem;
+  font-weight: 600;
   transition: background-color 0.3s ease, transform 0.2s ease;
 }
 
 .feedback-section button.btn-primary:hover {
-  background-color: #b51714;
+  background-color: #b41614;
   transform: scale(1.05);
 }
 
+/* Feedback List */
 .feedback-list {
   margin-top: 25px;
 }
 
 .feedback-card {
-  border-top: 1px solid #ddd;
+  border-top: 1px solid #444;
   padding: 15px 0;
   transition: background-color 0.3s ease;
-  border-radius: 8px;
+  border-radius: 10px;
+  background: #1f1f1f;
 }
 
 .feedback-card:hover {
-  background-color: #fff5f5;
+  background-color: #333333;
 }
 
 .feedback-card p {
   margin: 5px 0;
+  color: #eee;
 }
 
 .feedback-card strong {
   color: #D91E18;
+}
+
+/* ---------------- Responsive ---------------- */
+@media (max-width: 768px) {
+  .product-detail-wrapper {
+    flex-direction: column;
+    align-items: center;
+    padding: 20px;
+  }
+
+  .product-image img {
+    max-width: 100%;
+  }
+
+  .product-info {
+    align-items: center;
+    text-align: center;
+  }
+
+  .feedback-section {
+    padding: 20px;
+  }
 }
 
 /****************************************************
