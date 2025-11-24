@@ -25,11 +25,6 @@
           <a href="products.html">Products</a>
         </nav>
 
-        <div class="search-bar">
-          <input type="text" id="search" placeholder="Search products..." />
-          <button onclick="searchProducts()">Search</button>
-        </div>
-
         <div class="cart-auth">
           <div class="cart-icon" onclick="window.location.href='cart.html'">
             <i class="fa-solid fa-cart-shopping"></i>
@@ -44,27 +39,31 @@
     </header>
 
     <main id="login-page" class="auth-page fade-in hidden">
-    <form id="login-form" class="auth-card">
-      <h2>Login</h2>
-      <div class="success-message" id="login-success"></div>
-      
-      <input type="email" id="login-email" placeholder="Email" required />
-      <div class="error-message" id="login-email-error"></div>
-      
-      <input type="password" id="login-password" placeholder="Password" required />
-      <div class="error-message" id="login-password-error"></div>
-      
-      <button type="submit" class="btn-primary">Login</button>
-      <p class="auth-switch">
-        Don't have an account? <a href="#" id="show-signup">Sign Up</a>
-      </p>
-    </form>
-  </main>
+      <form id="login-form" class="auth-card">
+        <h2>Login</h2>
+        <div class="success-message" id="login-success"></div>
+
+        <input type="email" id="login-email" placeholder="Email" required />
+        <div class="error-message" id="login-email-error"></div>
+
+        <input
+          type="password"
+          id="login-password"
+          placeholder="Password"
+          required
+        />
+        <div class="error-message" id="login-password-error"></div>
+
+        <button type="submit" class="btn-primary">Login</button>
+        <p class="auth-switch">
+          Don't have an account? <a href="#" id="show-signup">Sign Up</a>
+        </p>
+      </form>
+    </main>
 
     <!-- FOOTER -->
     <footer>
       <div class="footer-container">
-        <!-- Socials Column -->
         <div class="footer-column">
           <h1>Kitenge Closet</h1>
           <h3>Connect with us</h3>
@@ -77,7 +76,6 @@
           </div>
         </div>
 
-        <!-- Product Column -->
         <div class="footer-column">
           <h3>Products</h3>
           <a href="#">Sell your Products</a>
@@ -86,7 +84,6 @@
           <a href="#">Product Business</a>
         </div>
 
-        <!-- Services Column -->
         <div class="footer-column">
           <h3>Services</h3>
           <a href="#">Return</a>
@@ -95,7 +92,6 @@
           <a href="#">Others</a>
         </div>
 
-        <!-- Get Help Column -->
         <div class="footer-column">
           <h3>Get Help</h3>
           <a href="#">Help Center</a>

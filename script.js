@@ -1,6 +1,6 @@
 /* ============ PRODUCT DATA ============ */
 const productsData = [
- {
+  {
     id: 1,
     name: "Savanna Maxi Skirt Set",
     category: "clothes",
@@ -257,6 +257,307 @@ const productsData = [
   },
 ];
 
+let currentSlide = 0;
+let slideInterval;
+let totalSlides = 0;
+
+document.addEventListener("DOMContentLoaded", () => {
+  initBannerSlider();
+  initTouchSupport();
+});
+
+function initBannerSlider() {
+  const slides = document.querySelectorAll(".slide");
+  if (!slides || slides.length === 0) return;
+
+  totalSlides = slides.length;
+
+  createNavigationDots();
+  startAutoSlide();
+
+  const banner = document.querySelector(".banner");
+  banner.addEventListener("mouseenter", stopAutoSlide);
+  banner.addEventListener("mouseleave", startAutoSlide);
+}
+
+function createNavigationDots() {
+  const banner = document.querySelector(".banner");
+  const oldDots = document.querySelector(".banner-dots");
+  if (oldDots) oldDots.remove();
+
+  const dotsContainer = document.createElement("div");
+  dotsContainer.className = "banner-dots";
+
+  for (let i = 0; i < totalSlides; i++) {
+    const dot = document.createElement("span");
+    dot.className = "banner-dot";
+    if (i === 0) dot.classList.add("active");
+    dot.onclick = () => goToSlide(i);
+    dotsContainer.appendChild(dot);
+  }
+
+  banner.appendChild(dotsContainer);
+}
+
+function showSlide(index) {
+  const bannerSlides = document.querySelector(".banner-slides");
+  const dots = document.querySelectorAll(".banner-dot");
+
+  if (index >= totalSlides) index = 0;
+  if (index < 0) index = totalSlides - 1;
+
+  currentSlide = index;
+
+  const offset = -currentSlide * 100;
+  bannerSlides.style.transform = `translateX(${offset}%)`;
+
+  dots.forEach((dot, i) => dot.classList.toggle("active", i === currentSlide));
+}
+
+function nextSlide() {
+  showSlide(currentSlide + 1);
+}
+function goToSlide(i) {
+  showSlide(i);
+}
+
+function startAutoSlide() {
+  stopAutoSlide();
+  slideInterval = setInterval(nextSlide, 3000);
+}
+
+function stopAutoSlide() {
+  if (slideInterval) clearInterval(slideInterval);
+}
+
+let touchStartX = 0;
+
+function initTouchSupport() {
+  const banner = document.querySelector(".banner");
+
+  banner.addEventListener("touchstart", (e) => {
+    touchStartX = e.changedTouches[0].screenX;
+  });
+
+  banner.addEventListener("touchend", (e) => {
+    const touchEndX = e.changedTouches[0].screenX;
+    if (touchEndX < touchStartX - 50) nextSlide();
+    if (touchEndX > touchStartX + 50) showSlide(currentSlide - 1);
+  });
+}
+
+/* ============ SEARCH FUNCTIONALITY ============ */
+function searchProducts() {
+  const searchInput = document.getElementById("search");
+  const searchTerm = searchInput.value.trim().toLowerCase();
+
+  if (searchTerm === "") {
+    showSearchMessage("Please enter a search term", "warning");
+    return;
+  }
+
+  const results = productsData.filter((product) => {
+    return (
+      product.name.toLowerCase().includes(searchTerm) ||
+      product.category.toLowerCase().includes(searchTerm) ||
+      product.description.toLowerCase().includes(searchTerm)
+    );
+  });
+
+  sessionStorage.setItem("searchResults", JSON.stringify(results));
+  sessionStorage.setItem("searchTerm", searchTerm);
+
+  if (!window.location.pathname.includes("products.html")) {
+    window.location.href = "products.html";
+  } else {
+    displaySearchResults(results, searchTerm);
+  }
+}
+
+function displaySearchResults(results, searchTerm) {
+  const container = document.getElementById("product-list");
+  if (!container) return;
+
+  container.innerHTML = "";
+
+  const searchHeader = document.createElement("div");
+  searchHeader.className = "search-header";
+  searchHeader.innerHTML = `
+    <h2>Search Results for "${searchTerm}"</h2>
+    <p>${results.length} product${results.length !== 1 ? "s" : ""} found</p>
+    <button onclick="clearSearch()" class="btn-clear-search">Clear Search</button>
+  `;
+
+  container.parentElement.insertBefore(searchHeader, container);
+
+  if (results.length === 0) {
+    container.innerHTML = `
+      <div class="no-results">
+        <i class="fas fa-search" style="font-size: 48px; color: #ccc; margin-bottom: 20px;"></i>
+        <h3>No products found</h3>
+        <p>Try searching with different keywords</p>
+      </div>
+    `;
+    return;
+  }
+
+  results.forEach((product) => {
+    const card = document.createElement("div");
+    card.className = "product-card";
+    card.innerHTML = `
+      <img src="${product.image}" alt="${product.name}" />
+      <h3>${product.name}</h3>
+      <p>Ksh ${product.price}</p>
+      <div class="product-buttons">
+        <button onclick="viewProduct(${product.id})">View Details</button>
+        <button onclick="addToCart(${product.id})">Add to Cart</button>
+      </div>
+    `;
+    container.appendChild(card);
+  });
+}
+
+function clearSearch() {
+  sessionStorage.removeItem("searchResults");
+  sessionStorage.removeItem("searchTerm");
+
+  const searchInput = document.getElementById("search");
+  if (searchInput) {
+    searchInput.value = "";
+  }
+
+  const searchHeader = document.querySelector(".search-header");
+  if (searchHeader) {
+    searchHeader.remove();
+  }
+
+  const suggestionsDiv = document.getElementById("search-suggestions");
+  if (suggestionsDiv) {
+    suggestionsDiv.style.display = "none";
+  }
+
+  renderProducts();
+}
+
+function showSearchMessage(message, type = "info") {
+  const existingMessage = document.querySelector(".search-message");
+  if (existingMessage) {
+    existingMessage.remove();
+  }
+
+  const messageDiv = document.createElement("div");
+  messageDiv.className = `search-message ${type}`;
+  messageDiv.textContent = message;
+
+  document.body.appendChild(messageDiv);
+
+  setTimeout(() => {
+    messageDiv.remove();
+  }, 3000);
+}
+
+function showSearchSuggestions(searchTerm) {
+  if (searchTerm.length < 2) {
+    hideSearchSuggestions();
+    return;
+  }
+
+  const suggestions = productsData
+    .filter((product) =>
+      product.name.toLowerCase().includes(searchTerm.toLowerCase())
+    )
+    .slice(0, 5)
+    .map((product) => product.name);
+
+  if (suggestions.length === 0) {
+    hideSearchSuggestions();
+    return;
+  }
+
+  let suggestionsDiv = document.getElementById("search-suggestions");
+  if (!suggestionsDiv) {
+    suggestionsDiv = document.createElement("div");
+    suggestionsDiv.id = "search-suggestions";
+    suggestionsDiv.className = "search-suggestions";
+    document.querySelector(".search-bar").appendChild(suggestionsDiv);
+  }
+
+  suggestionsDiv.innerHTML = suggestions
+    .map((suggestion) => `<div class="suggestion-item">${suggestion}</div>`)
+    .join("");
+  suggestionsDiv.style.display = "block";
+
+  document.querySelectorAll(".suggestion-item").forEach((item) => {
+    item.addEventListener("click", () => {
+      document.getElementById("search").value = item.textContent;
+      hideSearchSuggestions();
+      searchProducts();
+    });
+  });
+}
+
+function hideSearchSuggestions() {
+  const suggestionsDiv = document.getElementById("search-suggestions");
+  if (suggestionsDiv) {
+    suggestionsDiv.style.display = "none";
+  }
+}
+
+function initializeSearch() {
+  const searchInput = document.getElementById("search");
+  if (!searchInput) return;
+
+  searchInput.addEventListener("keypress", (e) => {
+    if (e.key === "Enter") {
+      e.preventDefault();
+      searchProducts();
+    }
+  });
+
+  searchInput.addEventListener("input", (e) => {
+    showSearchSuggestions(e.target.value.trim());
+  });
+
+  document.addEventListener("click", (e) => {
+    if (!e.target.closest(".search-bar")) {
+      hideSearchSuggestions();
+    }
+  });
+
+  checkSearchResults();
+}
+
+function checkSearchResults() {
+  const searchResults = sessionStorage.getItem("searchResults");
+  const searchTerm = sessionStorage.getItem("searchTerm");
+  if (
+    searchResults &&
+    searchTerm &&
+    window.location.pathname.includes("products.html")
+  ) {
+    const results = JSON.parse(searchResults);
+    displaySearchResults(results, searchTerm);
+    const searchInput = document.getElementById("search");
+    if (searchInput) {
+      searchInput.value = searchTerm;
+    }
+  }
+}
+
+const originalRenderProducts = renderProducts;
+renderProducts = function (category = "all") {
+  const searchResults = sessionStorage.getItem("searchResults");
+  const searchTerm = sessionStorage.getItem("searchTerm");
+
+  if (searchResults && searchTerm && !category) {
+    const results = JSON.parse(searchResults);
+    displaySearchResults(results, searchTerm);
+    return;
+  }
+
+  originalRenderProducts(category);
+};
+
 /* ============ GLOBAL HANDLING ============ */
 function updateCartCount() {
   const cart = JSON.parse(localStorage.getItem("cart")) || [];
@@ -267,7 +568,7 @@ function updateCartCount() {
 
 function addToCart(productId) {
   const cart = JSON.parse(localStorage.getItem("cart")) || [];
-  const existing = cart.find(item => item.id === productId);
+  const existing = cart.find((item) => item.id === productId);
   if (existing) existing.quantity += 1;
   else cart.push({ id: productId, quantity: 1 });
   localStorage.setItem("cart", JSON.stringify(cart));
@@ -288,10 +589,12 @@ function renderProducts(category = "all") {
   container.innerHTML = "";
   let filtered = productsData;
   if (category !== "all") {
-    filtered = productsData.filter(p => p.category.toLowerCase() === category.toLowerCase());
+    filtered = productsData.filter(
+      (p) => p.category.toLowerCase() === category.toLowerCase()
+    );
   }
 
-  filtered.forEach(product => {
+  filtered.forEach((product) => {
     const card = document.createElement("div");
     card.className = "product-card";
     card.innerHTML = `
@@ -309,7 +612,7 @@ function renderProducts(category = "all") {
 
 function setupCategoryFilters() {
   const buttons = document.querySelectorAll(".category-btn");
-  buttons.forEach(btn => {
+  buttons.forEach((btn) => {
     btn.addEventListener("click", () => {
       renderProducts(btn.dataset.category);
     });
@@ -325,7 +628,7 @@ function loadProductDetails() {
 
   const params = new URLSearchParams(window.location.search);
   const id = parseInt(params.get("id"));
-  const product = productsData.find(p => p.id === id);
+  const product = productsData.find((p) => p.id === id);
   if (!product) {
     container.innerHTML = "<p>Product not found.</p>";
     return;
@@ -360,12 +663,16 @@ function createFeedbackSection(productId) {
       <form id="feedback-form">
         <input type="text" id="feedback-name" placeholder="Your Name" required />
         <div class="star-rating">
-          ${[1,2,3,4,5].map(n => `
+          ${[1, 2, 3, 4, 5]
+            .map(
+              (n) => `
             <label class="star-label">
               <input type="radio" name="rating" value="${n}" />
               <span>⭐</span>
             </label>
-          `).join('')}
+          `
+            )
+            .join("")}
         </div>
         <textarea id="feedback-comment" placeholder="Write your comment" required></textarea>
         <button type="submit" class="btn-primary">Submit Review</button>
@@ -382,7 +689,9 @@ function createFeedbackSection(productId) {
 
     const name = document.getElementById("feedback-name").value.trim();
     const comment = document.getElementById("feedback-comment").value.trim();
-    const rating = parseInt(document.querySelector('input[name="rating"]:checked')?.value || 0);
+    const rating = parseInt(
+      document.querySelector('input[name="rating"]:checked')?.value || 0
+    );
 
     if (!name || !comment || !rating) {
       alert("Please fill all fields and select a rating.");
@@ -404,9 +713,9 @@ function createFeedbackSection(productId) {
             name,
             comment,
             rating,
-            date: new Date().toISOString()
-          }
-        })
+            date: new Date().toISOString(),
+          },
+        }),
       });
     } catch (err) {
       console.error("Failed to send review to SheetDB:", err);
@@ -426,12 +735,16 @@ function loadFeedback(productId) {
   const productFeedbacks = feedbacks[productId] || [];
 
   feedbackList.innerHTML = productFeedbacks.length
-    ? productFeedbacks.map(fb => `
+    ? productFeedbacks
+        .map(
+          (fb) => `
         <div class="feedback-card">
-          <p><strong>${fb.name}</strong> - ${'⭐'.repeat(fb.rating)}</p>
+          <p><strong>${fb.name}</strong> - ${"⭐".repeat(fb.rating)}</p>
           <p>${fb.comment}</p>
         </div>
-      `).join("")
+      `
+        )
+        .join("")
     : "<p>No reviews yet. Be the first to review!</p>";
 }
 
@@ -454,8 +767,8 @@ function renderCart() {
 
   container.innerHTML = "";
 
-  cart.forEach(item => {
-    const product = productsData.find(p => p.id === item.id);
+  cart.forEach((item) => {
+    const product = productsData.find((p) => p.id === item.id);
     if (!product) return;
 
     const div = document.createElement("div");
@@ -476,7 +789,7 @@ function renderCart() {
     `;
     container.appendChild(div);
 
-    div.querySelector(`#qty-${item.id}`).addEventListener("change", e => {
+    div.querySelector(`#qty-${item.id}`).addEventListener("change", (e) => {
       let value = parseInt(e.target.value);
       if (isNaN(value) || value < 1) value = 1;
       item.quantity = value;
@@ -485,7 +798,7 @@ function renderCart() {
     });
 
     div.querySelector(".btn-remove").addEventListener("click", () => {
-      cart = cart.filter(c => c.id !== item.id);
+      cart = cart.filter((c) => c.id !== item.id);
       localStorage.setItem("cart", JSON.stringify(cart));
       renderCart();
     });
@@ -505,7 +818,7 @@ function renderCart() {
 
   function updateCartTotal() {
     const totalPrice = cart.reduce((sum, item) => {
-      const product = productsData.find(p => p.id === item.id);
+      const product = productsData.find((p) => p.id === item.id);
       return sum + product.price * item.quantity;
     }, 0);
     const totalPriceEl = document.getElementById("cart-total-price");
@@ -517,7 +830,10 @@ function renderCart() {
 document.addEventListener("DOMContentLoaded", () => {
   updateCartCount();
 
-  if (window.location.pathname.includes("index.html") || window.location.pathname.includes("products.html")) {
+  if (
+    window.location.pathname.includes("index.html") ||
+    window.location.pathname.includes("products.html")
+  ) {
     renderProducts();
     setupCategoryFilters();
   }
