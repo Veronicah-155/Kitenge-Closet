@@ -829,6 +829,7 @@ function renderCart() {
 /* ============ INITIALIZE ============ */
 document.addEventListener("DOMContentLoaded", () => {
   updateCartCount();
+  initializeSearch();
 
   if (
     window.location.pathname.includes("index.html") ||
