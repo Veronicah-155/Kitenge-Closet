@@ -334,6 +334,10 @@ let touchStartX = 0;
 
 function initTouchSupport() {
   const banner = document.querySelector(".banner");
+  if (!banner) {
+    console.log("No banner found, skipping touch support");
+    return;
+  }
 
   banner.addEventListener("touchstart", (e) => {
     touchStartX = e.changedTouches[0].screenX;
