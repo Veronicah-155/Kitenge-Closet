@@ -129,7 +129,6 @@ const productsData = [
     image: "assets/access8.jpg",
     description: "Wide collar-style necklace inspired by traditional beadwork.",
   },
-
   {
     id: 16,
     name: "Sky High Heels",
@@ -257,11 +256,17 @@ const productsData = [
   },
 ];
 
+// Debug logging
+console.log("Script loaded!");
+console.log("Products data:", productsData);
+console.log("Number of products:", productsData.length);
+
 let currentSlide = 0;
 let slideInterval;
 let totalSlides = 0;
 
 document.addEventListener("DOMContentLoaded", () => {
+  console.log("DOM Content Loaded!");
   initBannerSlider();
   initTouchSupport();
 });
@@ -317,6 +322,7 @@ function showSlide(index) {
 function nextSlide() {
   showSlide(currentSlide + 1);
 }
+
 function goToSlide(i) {
   showSlide(i);
 }
@@ -548,20 +554,6 @@ function checkSearchResults() {
   }
 }
 
-const originalRenderProducts = renderProducts;
-renderProducts = function (category = "all") {
-  const searchResults = sessionStorage.getItem("searchResults");
-  const searchTerm = sessionStorage.getItem("searchTerm");
-
-  if (searchResults && searchTerm && !category) {
-    const results = JSON.parse(searchResults);
-    displaySearchResults(results, searchTerm);
-    return;
-  }
-
-  originalRenderProducts(category);
-};
-
 /* ============ GLOBAL HANDLING ============ */
 function updateCartCount() {
   const cart = JSON.parse(localStorage.getItem("cart")) || [];
@@ -587,15 +579,30 @@ function viewProduct(productId) {
 
 /* ============ PRODUCT LIST ============ */
 function renderProducts(category = "all") {
+  console.log("renderProducts called with category:", category);
   const container = document.getElementById("product-list");
-  if (!container) return;
+
+  if (!container) {
+    console.error("Product container not found!");
+    return;
+  }
+
+  console.log("Container found:", container);
 
   container.innerHTML = "";
   let filtered = productsData;
+
   if (category !== "all") {
     filtered = productsData.filter(
       (p) => p.category.toLowerCase() === category.toLowerCase()
     );
+  }
+
+  console.log("Filtered products:", filtered.length);
+
+  if (filtered.length === 0) {
+    container.innerHTML = "<p>No products found in this category.</p>";
+    return;
   }
 
   filtered.forEach((product) => {
@@ -612,12 +619,24 @@ function renderProducts(category = "all") {
     `;
     container.appendChild(card);
   });
+
+  console.log("Products rendered successfully!");
 }
 
 function setupCategoryFilters() {
   const buttons = document.querySelectorAll(".category-btn");
+  console.log("Setting up category filters, found buttons:", buttons.length);
+
   buttons.forEach((btn) => {
     btn.addEventListener("click", () => {
+      console.log("Category clicked:", btn.dataset.category);
+
+      // Remove active class from all buttons
+      buttons.forEach((b) => b.classList.remove("active"));
+      // Add active class to clicked button
+      btn.classList.add("active");
+
+      clearSearch();
       renderProducts(btn.dataset.category);
     });
   });
@@ -832,22 +851,44 @@ function renderCart() {
 
 /* ============ INITIALIZE ============ */
 document.addEventListener("DOMContentLoaded", () => {
+  console.log("Initializing application...");
+  console.log("Current page:", window.location.pathname);
+
   updateCartCount();
   initializeSearch();
 
-  if (
-    window.location.pathname.includes("index.html") ||
-    window.location.pathname.includes("products.html")
-  ) {
-    renderProducts();
+  // Check if we're on products page or index page
+  const path = window.location.pathname;
+  const isProductsPage =
+    path.includes("products.html") ||
+    path.includes("/products") ||
+    path.endsWith("/products");
+  const isIndexPage =
+    path.includes("index.html") || path === "/" || path.endsWith("/index");
+
+  console.log("Current path:", path);
+  console.log("Is products page:", isProductsPage);
+  console.log("Is index page:", isIndexPage);
+
+  if (isProductsPage || isIndexPage) {
+    console.log("Setting up products page...");
     setupCategoryFilters();
+    renderProducts();
   }
 
-  if (window.location.pathname.includes("product-details.html")) {
+  if (
+    window.location.pathname.includes("product-details.html") ||
+    window.location.pathname.includes("/product-details")
+  ) {
     loadProductDetails();
   }
 
-  if (window.location.pathname.includes("cart.html")) {
+  if (
+    window.location.pathname.includes("cart.html") ||
+    window.location.pathname.includes("/cart")
+  ) {
     renderCart();
   }
+
+  console.log("Initialization complete!");
 });
